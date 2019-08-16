@@ -70,7 +70,9 @@ static NSString *const PhotosLibraryPluginChannelName = @"flutter.yang.me/photos
                         break;
                 }
                 if(PHAssetMediaTypeUnknown != mediaType) {
-                    PHFetchResult<PHAsset *>* fetchedResults = [PHAsset fetchAssetsWithMediaType:mediaType options:nil];
+                    PHFetchOptions *fetchOptions = [PHFetchOptions new];
+                    fetchOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO],];
+                    PHFetchResult<PHAsset *>* fetchedResults = [PHAsset fetchAssetsWithMediaType:mediaType options:fetchOptions];
                     NSMutableArray* assets = [NSMutableArray arrayWithCapacity:fetchedResults.count];
                     for (PHAsset* asset in fetchedResults) {
                         [assets addObject:asset.assetDictionary];
@@ -111,7 +113,9 @@ static NSString *const PhotosLibraryPluginChannelName = @"flutter.yang.me/photos
                         height = 200;
                     }
                     CGSize size = CGSizeMake(width * 1.0f, height * 1.0f);
-                    PHFetchResult<PHAsset *> * results = [PHAsset fetchAssetsWithLocalIdentifiers:@[identifier] options:nil];
+                    PHFetchOptions *fetchOptions = [PHFetchOptions new];
+                    fetchOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO],];
+                    PHFetchResult<PHAsset *> * results = [PHAsset fetchAssetsWithLocalIdentifiers:@[identifier] options:fetchOptions];
                     if (results.count > 0) {
                         PHAsset* asset = results[0];
                         PHImageRequestOptions* options = [PHImageRequestOptions new];
@@ -168,13 +172,23 @@ static NSString *const PhotosLibraryPluginChannelName = @"flutter.yang.me/photos
 @implementation PHAsset(FlutterObject)
 - (NSDictionary *)assetDictionary
 {
-    return @{
-             @"identifier": self.localIdentifier,
-             @"width": @(self.pixelWidth),
-             @"height": @(self.pixelHeight),
-             @"type": @(self.mediaType),
-             @"subtype": @(self.mediaSubtypes),
-             @"sourcetype": @(self.sourceType),
-             };
+    if (@available(iOS 9.0, *)) {
+        return @{
+                 @"identifier": self.localIdentifier,
+                 @"width": @(self.pixelWidth),
+                 @"height": @(self.pixelHeight),
+                 @"type": @(self.mediaType),
+                 @"subtype": @(self.mediaSubtypes),
+                 @"sourcetype": @(self.sourceType),
+                 };
+    } else {
+        return @{
+                 @"identifier": self.localIdentifier,
+                 @"width": @(self.pixelWidth),
+                 @"height": @(self.pixelHeight),
+                 @"type": @(self.mediaType),
+                 @"subtype": @(self.mediaSubtypes),
+                 };
+    }
 }
 @end
